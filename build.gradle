@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.projectlombok:lombok:1.18.28'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -34,5 +35,15 @@ tasks.named('test') {
 tasks.bootBuildImage {
     docker {
         host = "//./pipe/dockerDesktopLinuxEngine"
+    }
+}
+
+bootRun {
+    systemProperty 'spring.profiles.active', 'test-data'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
     }
 }
