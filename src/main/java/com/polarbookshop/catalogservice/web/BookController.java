@@ -2,19 +2,21 @@ package com.polarbookshop.catalogservice.web;
 
 import com.polarbookshop.catalogservice.domain.Book;
 import com.polarbookshop.catalogservice.domain.BookService;
-import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-
 @RestController
-@AllArgsConstructor
-@RequestMapping(value = "books", produces = APPLICATION_JSON_VALUE)
+@RequestMapping(path = "books", produces = APPLICATION_JSON_VALUE)
 public class BookController {
     private final BookService bookService;
+
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
 
     @GetMapping
     public Iterable<Book> get() {
@@ -25,9 +27,10 @@ public class BookController {
     public Book getByIsbn(@PathVariable String isbn) {
         return bookService.viewBookDetails(isbn);
     }
-    @PostMapping
+
+    @PostMapping(consumes = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Book post(@Valid  @RequestBody Book book) {
+    public Book post(@Valid @RequestBody Book book) {
         return bookService.addBookToCatalog(book);
     }
 
@@ -41,6 +44,4 @@ public class BookController {
     public Book put(@PathVariable String isbn, @Valid @RequestBody Book book) {
         return bookService.editBookDetails(isbn, book);
     }
-
-
 }

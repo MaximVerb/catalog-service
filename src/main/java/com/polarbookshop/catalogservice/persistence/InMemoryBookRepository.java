@@ -8,34 +8,36 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Repository public class InMemoryBookRepository implements BookRepository {
-    private static final Map<String, Book> books =
-            new ConcurrentHashMap<>();
+@Repository
+public class InMemoryBookRepository implements BookRepository {
+    private static final Map<String, Book> bookMap = new ConcurrentHashMap<>();
+
 
     @Override
     public Iterable<Book> findAll() {
-        return books.values();
+        bookMap.put("1", new Book("123","Waddup","Harding",2.50));
+        return bookMap.values();
     }
 
     @Override
     public Optional<Book> findByIsbn(String isbn) {
-        return existsByIsbn(isbn) ? Optional.of(books.get(isbn)) :
+        return existsByIsbn(isbn) ? Optional.of(bookMap.get(isbn)) :
                 Optional.empty();
     }
 
     @Override
     public boolean existsByIsbn(String isbn) {
-        return books.get(isbn) != null;
+        return bookMap.get(isbn) != null;
     }
 
     @Override
     public Book save(Book book) {
-        books.put(book.isbn(), book);
+        bookMap.put(book.isbn(), book);
         return book;
     }
 
     @Override
     public void deleteByIsbn(String isbn) {
-        books.remove(isbn);
+        bookMap.remove(isbn);
     }
 }
