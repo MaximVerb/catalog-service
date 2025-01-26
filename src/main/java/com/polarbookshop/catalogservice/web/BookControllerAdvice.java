@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = {BookController.class})
 public class BookControllerAdvice {
 
     @ExceptionHandler(BookNotFoundException.class)
