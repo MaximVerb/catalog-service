@@ -2,6 +2,9 @@ package com.polarbookshop.catalogservice.domain;
 
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.StreamSupport;
+
 @Service
 public class BookService {
     private final BookRepository bookRepository;
@@ -10,8 +13,20 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
-    public Iterable<Book> viewBookList() {
-        return bookRepository.findAll();
+    public List<Book> viewBookList() {
+        //  return bookRepository.findAll();
+        return StreamSupport.stream(bookRepository.findAll().spliterator(), false)
+                .map(book -> new Book(
+                        book.getId(),
+                        "Bawling like a kid",
+                        book.getTitle(),
+                        book.getAuthor(),
+                        book.getPrice(),
+                        book.getPublisher(),
+                        book.getCreatedDate(),
+                        book.getLastModifiedDate(),
+                        book.getVersion()))
+                .toList();
     }
 
     public Book viewBookDetails(String isbn) {
@@ -20,8 +35,8 @@ public class BookService {
     }
 
     public Book addBookToCatalog(Book book) {
-        if (bookRepository.existsByIsbn(book.isbn())) {
-            throw new BookAlreadyExistsException(book.isbn());
+        if (bookRepository.existsByIsbn(book.getIsbn())) {
+            throw new BookAlreadyExistsException(book.getIsbn());
         }
         return bookRepository.save(book);
     }
@@ -34,10 +49,15 @@ public class BookService {
         return bookRepository.findByIsbn(isbn)
                 .map(existingBook -> {
                     var bookToUpdate = new Book(
-                            existingBook.isbn(),
-                            book.title(),
-                            book.author(),
-                            book.price());
+                            existingBook.getId(),
+                            existingBook.getIsbn(),
+                            book.getTitle(),
+                            book.getAuthor(),
+                            book.getPrice(),
+                            book.getPublisher(),
+                            existingBook.getCreatedDate(),
+                            existingBook.getLastModifiedDate(),
+                            existingBook.getVersion());
                     return bookRepository.save(bookToUpdate);
                 })
                 .orElseGet(() -> addBookToCatalog(book));

@@ -37,7 +37,7 @@ public class BookControllerMvcTest {
 
     @Test
     void whenBookAlreadyExistsThenShouldReturn422 () throws Exception {
-        Book existingBook = new Book("1231231231", "Title", "Author", 9.90);
+        Book existingBook = Book.of("1231231231", "Title", "Author", 9.90, "Penguin");
         given(bookService.addBookToCatalog(existingBook))
                 .willThrow(BookAlreadyExistsException.class);
 

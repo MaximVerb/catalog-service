@@ -1,3 +1,5 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:14.4:///
+    username: user
+    password : password
+    url: jdbc:tc:postgresql:14.4:///polardb_catalog

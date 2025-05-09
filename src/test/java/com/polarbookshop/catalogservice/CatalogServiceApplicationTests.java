@@ -12,28 +12,40 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("integration")
 class CatalogServiceApplicationTests {
 
     @Autowired
     private WebTestClient webTestClient;
 
-    @Autowired
-    private BookRepository bookRepository;
+    @Test
+    void whenGetRequestWithIdThenBookReturned() {
+        var bookIsbn = "1231231230";
+        var bookToCreate = Book.of(bookIsbn, "Title", "Author", 9.90, "Polarsophia");
+        Book expectedBook = webTestClient
+                .post()
+                .uri("/books")
+                .bodyValue(bookToCreate)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(Book.class).value(book -> assertThat(book).isNotNull())
+                .returnResult().getResponseBody();
 
-    @BeforeEach
-    void setup() {
-        Book bookToUpdate = new Book("1231231232", "Title to update", "Author to update", 9.90);
-        bookRepository.save(bookToUpdate);
+        webTestClient
+                .get()
+                .uri("/books/" + bookIsbn)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody(Book.class).value(actualBook -> {
+                    assertThat(actualBook).isNotNull();
+                    assertThat(actualBook.getIsbn()).isEqualTo(expectedBook.getIsbn());
+                });
     }
-
 
     @Test
     void whenPostRequestThenBookCreated() {
-        var expectedBook = new Book("1231231231", "Title", "Author", 9.90);
+        var expectedBook = Book.of("1231231231", "Title", "Author", 9.90, "Polarsophia");
 
         webTestClient
                 .post()
@@ -43,27 +55,61 @@ class CatalogServiceApplicationTests {
                 .expectStatus().isCreated()
                 .expectBody(Book.class).value(actualBook -> {
                     assertThat(actualBook).isNotNull();
-                    assertThat(actualBook.isbn())
-                            .isEqualTo(expectedBook.isbn());
-        });
+                    assertThat(actualBook.getIsbn()).isEqualTo(expectedBook.getIsbn());
+                });
     }
 
     @Test
-    void whenPutRequestThenBookIsUpdated() {
-        Book bookForPut = new Book("1231231232", "Title is putted", "Author is putted", 9.90);
+    void whenPutRequestThenBookUpdated() {
+        var bookIsbn = "1231231232";
+        var bookToCreate = Book.of(bookIsbn, "Title", "Author", 9.90, "Polarsophia");
+        Book createdBook = webTestClient
+                .post()
+                .uri("/books")
+                .bodyValue(bookToCreate)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(Book.class).value(book -> assertThat(book).isNotNull())
+                .returnResult().getResponseBody();
+        createdBook.setPrice(7.95);
+
         webTestClient
                 .put()
-                .uri("/books/1231231232")
-                .bodyValue(bookForPut)
+                .uri("/books/" + bookIsbn)
+                .bodyValue(createdBook)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(Book.class).value(actualBook -> {
                     assertThat(actualBook).isNotNull();
-                    assertThat(actualBook.isbn()).isEqualTo(bookForPut.isbn());
-                    assertThat(actualBook.title()).isEqualTo(bookForPut.title());
-                    assertThat(actualBook.author()).isEqualTo(bookForPut.author());
-                    assertThat(actualBook.price()).isEqualTo(bookForPut.price());
+                    assertThat(actualBook.getPrice()).isEqualTo(createdBook.getPrice());
                 });
+    }
+
+    @Test
+    void whenDeleteRequestThenBookDeleted() {
+        var bookIsbn = "1231231233";
+        var bookToCreate = Book.of(bookIsbn, "Title", "Author", 9.90, "Polarsophia");
+        webTestClient
+                .post()
+                .uri("/books")
+                .bodyValue(bookToCreate)
+                .exchange()
+                .expectStatus().isCreated();
+
+        webTestClient
+                .delete()
+                .uri("/books/" + bookIsbn)
+                .exchange()
+                .expectStatus().isNoContent();
+
+        webTestClient
+                .get()
+                .uri("/books/" + bookIsbn)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody(String.class).value(errorMessage ->
+                        assertThat(errorMessage).isEqualTo("The book with ISBN " + bookIsbn + " was not found.")
+                );
     }
 
 }

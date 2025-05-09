@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -19,7 +21,7 @@ public class BookController {
     }
 
     @GetMapping
-    public Iterable<Book> get() {
+    public List<Book> get() {
         return bookService.viewBookList();
     }
 
